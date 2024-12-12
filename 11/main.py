@@ -19,17 +19,18 @@ def expand_stones(stone: int, currentIteration: int, totalIterations: int) -> in
         return val
     return expand_stones(stone*2024, currentIteration+1, totalIterations)
 
-def thingo():
+def execute(iterations: int):
     line = []
     with open("input.txt", "r") as file:
         for line in file:
             line = [int(x) for x in line.split()]
     all_stones = 0
     for stone in line:
-        all_stones += expand_stones(stone, 1, 75)
+        all_stones += expand_stones(stone, 1, iterations)
     return all_stones
     
 
 if __name__ == "__main__":
-    print(thingo())
+    print("part 1:", execute(25))
+    print("part 2:", execute(75))
     
