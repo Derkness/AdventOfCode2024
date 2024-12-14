@@ -1,6 +1,4 @@
-from copy import deepcopy
-from enum import Enum
-from math import ceil, floor
+from math import floor
 
 
 class Robot:
@@ -51,34 +49,11 @@ def part_1():
     for i in range(5041):
         for robot in robots:
             robot.move(maxX, maxY)
-        # [print(x) for x in robots]
-        # print("")
     robotsInQuadrants = []
     for robot in robots:
         quad = robot.get_quadrant(maxX, maxY)
         robotsInQuadrants.append(quad)
-    print("1:", robotsInQuadrants.count(1))
-    print("2:", robotsInQuadrants.count(2))
-    print("3:", robotsInQuadrants.count(3))
-    print("4:", robotsInQuadrants.count(4))
-    allCords = [(x.xPos, x.yPos) for x in robots]
-    for j in range(maxY):
-        if (j == floor(maxY/2)):
-            print("")
-            continue
-        for i in range(maxX):
-            if (i == floor(maxX/2)):
-                print(" ",end="")
-                continue
-            if (i,j) in allCords:
-                print(allCords.count((i,j)), end="")
-            else:
-                print('.', end="")
-        print("")
     return robotsInQuadrants.count(1) * robotsInQuadrants.count(2) * robotsInQuadrants.count(3) * robotsInQuadrants.count(4)
-
-import sys
-
 
 def part_2():
     robots: list[Robot] = []
@@ -94,23 +69,10 @@ def part_2():
         allCords = [(x.xPos, x.yPos) for x in robots]
         # if its a pattern then probably no 2 on the same spot?
         if len(set(allCords)) == len(allCords):
-            with open('attempt'+str(attemptNum)+".txt", 'w') as sys.stdout:
-                for j in range(maxY):
-                    if (j == floor(maxY/2)):
-                        print("")
-                        continue
-                    for i in range(maxX):
-                        if (i == floor(maxX/2)):
-                            print(" ",end="")
-                            continue
-                        if (i,j) in allCords:
-                            print(allCords.count((i,j)), end="")
-                        else:
-                            print('.', end="")
-                    print("")
+            return attemptNum + 1
     return None
 
 if __name__ == "__main__":
     totalValue = 0
-    # print("part 1:", part_1())
+    print("part 1:", part_1())
     print("part 2:", part_2())
