@@ -24,10 +24,10 @@ class Wire:
     def __init__(self, name: str, value):
         self.value = value
         self.name = name
-        self.contributed: list[Wire] = []
+        self.contributed: tuple[Wire, Wire, Operation] = None
     
-    def add_contribution(self, contributions):
-        self.contributed += contributions
+    def set_contribution(self, left, right, operation):
+        self.contributed = (left, right, operation)
     
     def reset_if_not_initial(self):
         if self.name[0] == 'x' or self.name[0] == 'y':
@@ -78,8 +78,7 @@ class Rule:
                 self.target.value = self.left.value | self.right.value
             case Operation.XOR:
                 self.target.value = self.left.value ^ self.right.value
-        self.target.add_contribution(self.left.contributed + [self.left])
-        self.target.add_contribution(self.right.contributed + [self.right])
+        self.target.set_contribution(self.left, self.right, self.operation)
     
     def prepared(self):
         if self.left.value is None or self.right.value is None:
@@ -162,17 +161,45 @@ def part_2():
                 continue
             rule.operate()
             rules.pop(index)
-    outputWires = [x for x in wires if x.is_output()]
-    outputWires.sort()
-    for wire in outputWires:
-        if not wire.suspicious():
+    # Some rules of adders in general
+    # Output wires have to be the result of an xor
+    # mid wires have other rules.
+    #   1: if its an or, has to come from two ands
+    #   2: if its a XOR, cannot be result of or and xor (as that is for the outputs only)
+    #   3: if its an and, neither parent can be AND
+    
+    # I've found a few exceptions:
+    # Biggest bit out output is an or.
+    # smallest bit of output must be simple xor with z00 and y00, regardless of everything said above
+    # i don't *think* z bits can be inputs to others
+    for wire in wires:
+        if wire.is_input():
             continue
-        print(wire)
-        [print("    ",x) for x in wire.contributed if x.is_input()]
-    outputBits = "".join([str(x.value) for x in outputWires])
-    return int(outputBits, 2)
-    
-    
+        if wire.is_output():
+            if wire.contributed[2] != Operation.XOR:
+                print(wire)
+        else:
+            left = wire.contributed[0]
+            right = wire.contributed[1]
+            if left.is_input() or right.is_input():
+                continue
+            
+            if (wire.contributed[2] == Operation.OR):
+                if left.contributed[2] != Operation.AND:
+                    print(left)
+                if right.contributed[2] != Operation.AND:
+                    print(wire.contributed[1])
+                    
+            if (wire.contributed[2] == Operation.XOR):
+                if (left.contributed[2] == Operation.XOR and right.contributed[2] == Operation.OR) or (left.contributed[2] == Operation.OR and right.contributed[2] == Operation.XOR):
+                    print(wire)
+                    
+            if (wire.contributed[2] == Operation.AND):
+                if left.contributed[2] == Operation.AND:
+                    print(left)
+                if right.contributed[2] == Operation.AND:
+                    print(right)
+    return None
     
 def find_by_name(wires: list[Wire], name: str):
     for wire in wires:
@@ -184,3 +211,15 @@ if __name__ == "__main__":
     totalValue = 0
     print("part 1:", part_1())
     print("part 2:", part_2())
+
+# Found 9 'wrong' bits? Maybe solving one solves another just implcitly, so im gonna try all the combos.
+
+# # gvm,qjj,qsb,wbd,wmp,z17,z26,z39
+# # gjc,qjj,qsb,wbd,wmp,z17,z26,z39
+# # gjc,gvm,qsb,wbd,wmp,z17,z26,z39
+# # gjc,gvm,qjj,wbd,wmp,z17,z26,z39
+# gjc,gvm,qjj,qsb,wmp,z17,z26,z39 # This was the right one
+# gjc,gvm,qjj,qsb,wbd,z17,z26,z39
+# gjc,gvm,qjj,qsb,wbd,wmp,z26,z39
+# gjc,gvm,qjj,qsb,wbd,wmp,z17,z39
+# gjc,gvm,qjj,qsb,wbd,wmp,z17,z26
