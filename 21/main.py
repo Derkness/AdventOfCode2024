@@ -24,58 +24,78 @@ def part_1():
         commands = []
         for char in line:
             goal = find_coords(char, PAD_ONE)
-            while cur != goal:
-                if goal[1] > cur[1]:
-                    cur = (cur[0], cur[1] + 1)
-                    commands.append(">")
-                    continue
-                if goal[0] < cur[0]:
-                    cur = (cur[0] - 1, cur[1])
-                    commands.append("^")
-                    continue
-                if goal[1] < cur[1]:
-                    cur = (cur[0], cur[1] - 1)
-                    commands.append("<")
-                    continue
-                if goal[0] > cur[0]:
-                    cur = (cur[0] + 1, cur[1])
-                    commands.append("v")
-                    continue
+            vertical = get_vertical(cur, goal)
+            horizontal = get_horizontal(cur, goal)
+            if cur[0] == 3 and goal[1] == 0:
+                commands.append(vertical)
+                commands.append(horizontal)
+                cur = goal
+            elif cur[1] == 0 and goal[0] == 3:
+                commands.append(horizontal)
+                commands.append(vertical)
+                cur = goal
+            elif cur[1] < goal[1]:
+                commands.append(vertical)
+                commands.append(horizontal)
+                cur = goal
+            elif cur[1] > goal[1]:
+                commands.append(horizontal)
+                commands.append(vertical)
+                cur = goal
+            else:
+                commands.append(vertical)
+                cur = goal
             commands.append("A")
-        # [print(x, end="") for x in commands]
-        # print("")
+        commands = "".join(commands)
         for _ in range(2):
             newCommands = []
             cur = (0, 2)
             for char in commands:
                 goal = find_coords(char, PAD_TWO)
-                while cur != goal:
-                    if cur == (0,0):
-                        print('ss')
-                    if goal[1] < cur[1]:
-                        cur = (cur[0], cur[1] - 1)
-                        newCommands.append("<")
-                        continue
-                    if goal[0] > cur[0]:
-                        cur = (cur[0] + 1, cur[1])
-                        newCommands.append("v")
-                        continue
-                    if goal[0] < cur[0]:
-                        cur = (cur[0] - 1, cur[1])
-                        newCommands.append("^")
-                        continue
-                    if goal[1] > cur[1]:
-                        cur = (cur[0], cur[1] + 1)
-                        newCommands.append(">")
-                        continue
+                vertical = get_vertical(cur, goal)
+                horizontal = get_horizontal(cur, goal)
+                if cur[0] == 1 and cur[1] == 0:
+                    newCommands.append(horizontal)
+                    newCommands.append(vertical)
+                    cur = goal
+                elif goal[0] == 1 and goal[1] == 0:
+                    newCommands.append(vertical)
+                    newCommands.append(horizontal)
+                    cur = goal
+                elif cur[1] < goal[1]:
+                    newCommands.append(vertical)
+                    newCommands.append(horizontal)
+                    cur = goal
+                elif cur[1] > goal[1]:
+                    newCommands.append(horizontal)
+                    newCommands.append(vertical)
+                    cur = goal
+                else:
+                    newCommands.append(vertical)
+                    cur = goal
                 newCommands.append("A")
-            commands = newCommands
-            # [print(x, end="") for x in commands]
-            # print("")
-        [print(x, end="") for x in commands]
-        print("")
+            commands = "".join(newCommands)
+        print(len(commands))
         total += len(commands) * int(line[:-1])
     return total
+
+def get_horizontal(start, end):
+    startVal = start[1]
+    endVal = end[1]
+    if startVal < endVal:
+        return ">" * (endVal-startVal)
+    if startVal > endVal:
+        return "<" * (startVal-endVal)
+    return ""
+
+def get_vertical(start, end):
+    startVal = start[0]
+    endVal = end[0]
+    if startVal < endVal:
+        return "v" * (endVal-startVal)
+    if startVal > endVal:
+        return "^" * (startVal-endVal)
+    return ""
 
 def best_button(prevCord, nextCord, cur):
     options = []
@@ -110,3 +130,19 @@ def find_coords(char, map):
 if __name__ == "__main__":
     totalValue = 0
     print("part 1:", part_1())
+
+# Lets get some rules tommy boy
+# We do want to always group the directions as one, but it's not as simple as down before left, or right before up, or whatever
+# Depends on the PREVIOUS one (at the same level)
+# for the numpad one, we can't ever hit bottom left corner, so if going from bot to left, has to be up first then left. Going from left to bottom is opposite
+# for direction one, blank is top left corner, so from left corner is right first, and to left corner is down first.
+#   I think, becuase it's just two tall, we can go like, if current is '<', then do all rights then up (if needed). If goal is not '>' then do all up/down, then sides
+# ------------- ABOVE REFERENCES AVOIDING THE GAP -----------
+
+# ------------- EFFICIENCY ----------------------------------
+# Now, from some of the first attempts it very much depends what order I do things in. It's a given I only need one type of v/^, or one type of >/<. But it's hard to predict the order, sometimes it only matters 2 or 3 steps down. I also bet that pt2 is gonna be like "WOW you find out you need 100 robots" so I can't let anything like that creep in i think
+# Because we always start on the top right, i think if we are moving left, we want left first then either the up or down. Otherwise, updown first
+
+# Pt.2 SUCCESS!!!
+#I was right about part 2! :D so happy about that! 
+#Maybe i can do the equivalent of DFS? and do some sneaky cachin
